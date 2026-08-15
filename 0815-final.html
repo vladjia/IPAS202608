@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPAS AI 應用規劃師 · 情境應用混合版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d10; --panel:#14181e; --panel2:#1b212a; --line:#2a323d;
+  --ink:#e9edf2; --muted:#8b939e;
+  --red:#E30613; --good:#2ee6a8; --bad:#ff8a3d; --amber:#ffc857;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans TC",-apple-system,BlinkMacSystemFont,"Microsoft JhengHei",sans-serif;
+  font-size:16px; line-height:1.7; letter-spacing:.01em; padding-bottom:40px;
+}
+.wrap{max-width:540px;margin:0 auto;padding:0 16px}
+.hud{position:sticky;top:0;z-index:20;background:rgba(11,13,16,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hud-in{max-width:540px;margin:0 auto;padding:10px 16px 8px;display:flex;align-items:center;gap:12px}
+.tag{font-family:"Chakra Petch",monospace;font-weight:700;font-size:11px;letter-spacing:.12em;background:var(--red);color:#fff;padding:3px 10px;transform:skewX(-18deg)}
+.tag span{display:inline-block;transform:skewX(18deg)}
+.hud-meta{margin-left:auto;font-size:13px;color:var(--muted)}
+.hud-meta b{color:var(--ink);font-family:"Chakra Petch",monospace;font-size:15px}
+.bar{height:2px;background:var(--line)}
+.bar>i{display:block;height:100%;background:var(--red);width:0;transition:width .3s ease}
+
+.hero{padding:44px 0 8px}
+.hero h1{font-size:27px;line-height:1.35;margin:0 0 6px;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero p{color:var(--muted);font-size:14.5px;margin:0 0 26px}
+.pick{display:grid;gap:10px;margin-bottom:22px}
+.pick button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:var(--r);padding:15px 16px;font:inherit;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .15s,background .15s}
+.pick button:hover,.pick button:focus-visible{border-color:var(--red);background:var(--panel2)}
+.pick .k{font-family:"Chakra Petch",monospace;font-weight:700;color:var(--red);font-size:13px;letter-spacing:.1em}
+.pick .t{font-weight:500}
+.pick .s{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+.note{font-size:13px;color:var(--muted);border-left:2px solid var(--red);padding:2px 0 2px 12px}
+
+.qhead{display:flex;align-items:baseline;gap:10px;margin:22px 0 12px}
+.qno{font-family:"Chakra Petch",monospace;font-weight:700;font-size:34px;color:var(--red);line-height:1}
+.qsub{font-size:11.5px;color:var(--muted);letter-spacing:.08em}
+.scene{
+  background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:var(--r);padding:13px 15px;margin-bottom:13px;font-size:15px;line-height:1.72;color:#d6dde5;
+}
+.scene .lb{font-family:"Chakra Petch",monospace;font-size:10.5px;letter-spacing:.14em;font-weight:700;color:var(--amber);display:block;margin-bottom:5px}
+.qtext{font-size:17.5px;line-height:1.68;font-weight:500;margin:0 0 18px}
+.opts{display:grid;gap:9px}
+.opt{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;color:var(--ink);font:inherit;font-size:15.5px;line-height:1.6;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:#4a5563}
+.opt:disabled{cursor:default}
+.opt .a{font-family:"Chakra Petch",monospace;font-weight:700;font-size:12px;flex:0 0 auto;color:var(--muted);padding-top:3px;min-width:14px}
+.opt.correct{border-color:var(--good);background:rgba(46,230,168,.09)}
+.opt.correct .a{color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:rgba(255,138,61,.09)}
+.opt.wrong .a{color:var(--bad)}
+.opt.dim{opacity:.45}
+
+.exp{margin-top:16px;display:grid;gap:10px;animation:rise .25s ease}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px}
+.box .lb{font-family:"Chakra Petch",monospace;font-size:11px;letter-spacing:.14em;font-weight:700;display:block;margin-bottom:5px}
+.box.why{border-left:3px solid var(--good)} .box.why .lb{color:var(--good)}
+.box.trap{border-left:3px solid var(--red)} .box.trap .lb{color:var(--red)}
+.box p{margin:0;font-size:14.5px;line-height:1.72;color:#cfd6de}
+
+.nav{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;background:var(--red);color:#fff;border:0;border-radius:var(--r);padding:15px;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);flex:0 0 auto;padding:15px 18px}
+
+.score{text-align:center;padding:34px 0 10px}
+.score .n{font-family:"Chakra Petch",monospace;font-weight:700;font-size:78px;line-height:1}
+.score .n.pass{color:var(--good)} .score .n.fail{color:var(--bad)}
+.score .l{font-size:14px;color:var(--muted);margin-top:2px}
+.score .verdict{font-size:18px;font-weight:700;margin-top:14px}
+.rev{margin-top:26px}
+.rev h3{font-size:14px;letter-spacing:.06em;color:var(--muted);font-weight:500;margin:0 0 12px}
+.rvitem{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:var(--r);padding:13px 15px;margin-bottom:9px}
+.rvitem .q{font-size:14.5px;font-weight:500;margin:0 0 8px}
+.rvitem .ln{font-size:13.5px;margin:0;color:#cfd6de}
+.rvitem .ln b{color:var(--good);font-weight:500}
+.rvitem .ln.x b{color:var(--bad)}
+.foot{margin-top:30px;font-size:12.5px;color:#5f6875;line-height:1.7;border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="hud" id="hud" hidden>
+  <div class="hud-in">
+    <div class="tag"><span>SCENARIO</span></div>
+    <div class="hud-meta"><b id="hPos">1/45</b> ・ 答對 <b id="hOk">0</b></div>
+  </div>
+  <div class="bar"><i id="hBar"></i></div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<script>
+/* c: 情境敘述（可省略）  q: 問句  o: 選項  a: 正解  why/trap: 解析 */
+const BANK = [
+
+/* ---------- 一、把業務問題翻譯成 AI 任務 ---------- */
+{c:"某連鎖飲料店有兩年的訂單紀錄，店長想知道「明天中午該備多少杯珍奶的料」。",
+q:"這個需求最適合對應到哪一種機器學習任務？",
+o:["分類，判斷明天是不是熱銷日","迴歸，預測明天的實際銷售杯數","分群，把門市依銷量分成幾類","異常偵測，找出銷量特別怪的日子"],a:1,
+why:"要的是「多少杯」——一個連續數值，就是迴歸。若問的是「明天會不會缺料（會/不會）」才是分類。",
+trap:"A 很有迷惑性，因為「熱銷日」聽起來也很實用。但店長要的是備料數量，不是一個標籤。判斷任務類型永遠看**要輸出什麼型態的答案**。"},
+
+{c:"某化妝品代工廠想把客戶依「下單頻率、平均單價、產品類型」自動分成幾群，行銷部好設計不同方案。目前沒有任何既定的客戶分類。",
+q:"應採用下列哪一種方法？",
+o:["監督式學習的分類演算法","非監督式學習的分群演算法","強化學習的獎勵最佳化","時間序列的季節性分解"],a:1,
+why:"關鍵在「**沒有任何既定分類**」——沒有標準答案可學，只能靠資料本身的相似度分群（如 K-means）。",
+trap:"分類 vs 分群是最高頻的中文陷阱題。口訣：**有標籤才叫分類，沒標籤只能分群**。題幹只要出現「目前沒有分類／沒有標記」，答案幾乎就是分群。"},
+
+{c:"工廠想在產線上自動判斷零件表面「有無刮痕」，品保部已經人工挑出 5,000 張良品照與 5,000 張瑕疵照。",
+q:"這個專案屬於什麼任務？",
+o:["非監督式學習的異常偵測任務","監督式學習的二元分類任務","強化學習的動作選擇任務","生成式模型的影像合成任務"],a:1,
+why:"已經有人工標好的良品／瑕疵標籤，且輸出只有兩類 → 監督式二元分類（通常用 CNN）。",
+trap:"很多人看到「瑕疵」就直覺選異常偵測。異常偵測用在**只有良品樣本、瑕疵樣態未知**的情況。這題已經備妥兩類標註資料，就是標準監督式。"},
+
+{c:"倉管主管希望系統能在庫存低於安全水位時自動提醒，規則是「現有量 < 平均日耗量 × 前置天數」。",
+q:"關於這個需求，最正確的判斷是？",
+o:["應建置深度學習模型以提升判斷準確率","規則明確且固定，用傳統程式邏輯即可","須先蒐集大量標註資料才能開始開發","應採用強化學習讓系統自行學會門檻"],a:1,
+why:"規則是人已經想清楚、可以寫死的算式。這種情況用 if-else 就好——**更快、更省、更可解釋、不會出錯**。",
+trap:"這是「AI 規劃師」很愛考的一題：判斷**什麼時候不該用 AI**。看到題目就套模型是最常見的失分點。AI 適合的是規則說不清楚、或會隨資料改變的問題。"},
+
+/* ---------- 二、資料處理 ---------- */
+{c:"人資部匯出的員工資料中，「部門」欄位是文字（業務／生產／研發／管理），要投入模型使用。",
+q:"最適當的處理方式是？",
+o:["依部門大小順序編為 1、2、3、4 後使用","轉為獨熱編碼，展開成四個 0/1 欄位","直接刪除該欄位以免影響模型判斷","將部門名稱做標準化後轉為數值使用"],a:1,
+why:"部門之間沒有大小關係，屬名目變數，用 One-hot 展開才不會被誤讀成順序。",
+trap:"A 的「依大小順序」聽起來煞有其事，但部門的「大小」是你硬編的，模型會以為管理(4) 是業務(1) 的四倍。有序類別（如低/中/高風險）才能用序號編碼。"},
+
+{c:"分析薪資資料時發現：多數人月薪落在 3～6 萬，但有一筆是 480 萬（後來確認是輸入時多打了兩個 0）。",
+q:"最適當的處理是？",
+o:["保留該筆資料，因為模型應學會處理極端值","確認為輸入錯誤後修正或剔除該筆資料","對整欄取對數轉換即可消除其影響","增加訓練輪次讓模型自行降低其權重"],a:1,
+why:"**已確認是登錄錯誤**的離群值屬於髒資料，應更正或移除。離群值處理的第一步永遠是：先判斷它是「錯誤」還是「真實但罕見」。",
+trap:"C 的對數轉換是處理偏態的真技巧，聽起來很專業——但它只是壓縮尺度，錯誤資料還在裡面。真正的富豪高薪要保留，打錯的要修掉，兩者處理方式不同。"},
+
+{c:"某資料集中「年齡」以歲為單位（20～65），「年收入」以元為單位（300,000～2,000,000），要用 KNN 演算法建模。",
+q:"若不做任何處理直接訓練，最可能發生什麼？",
+o:["年收入因數值範圍大而主導距離計算","年齡因欄位在前而獲得較高的重要性","兩個特徵的影響力會自動被平衡處理","模型會直接報錯而無法完成訓練程序"],a:0,
+why:"KNN、SVM、K-means 這類**依賴距離計算**的演算法對尺度極度敏感。收入差幾十萬會完全蓋過年齡差幾十歲，所以要先做標準化或正規化。",
+trap:"C 是「模型很聰明會自己處理」的想像。只有決策樹家族（決策樹、隨機森林、XGBoost）對尺度不敏感，距離型演算法一定要先縮放。"},
+
+{c:"客戶問卷資料中，「月收入」欄有 35% 的人未填答。",
+q:"下列處理方式何者最不恰當？",
+o:["全部填入 0，當作這些人沒有收入","以中位數填補，並加註是否為填補的欄位","評估後判定遺漏比例過高，整欄不予採用","分析未填答者是否有共同特徵再決定策略"],a:0,
+why:"問「最不恰當」。填 0 等於宣稱這些人月收入為零，會嚴重扭曲分布與模型判斷。",
+trap:"填 0 在程式裡最省事，所以很多人下意識覺得可以。要問自己：**0 對這個欄位有真實意義嗎？**「訂單數 0」有意義，「月收入 0」「身高 0」沒有。"},
+
+{c:"某公司要訓練客訴分類模型，共蒐集 10,000 筆客訴。同事建議「全部拿去訓練，這樣模型學得最完整」。",
+q:"這個建議的問題在於？",
+o:["資料量不足，應至少蒐集十萬筆才能訓練","沒有保留獨立測試資料，無法評估泛化能力","客訴資料屬於個資，完全不能用於訓練","應改用非監督式學習才不需要切分資料"],a:1,
+why:"必須切出模型沒看過的測試集，才能知道它在真實環境的表現。用訓練資料評估等於「考古題當模擬考還開書」。",
+trap:"這個錯誤在實務上很常見，而且症狀是「分數超漂亮」，特別有欺騙性。標準做法是訓練／驗證／測試三分，或用交叉驗證。"},
+
+/* ---------- 三、模型評估（重點區） ---------- */
+{c:"某工廠導入 AI 瑕疵檢測。老闆說：「漏掉一個瑕疵品流到客戶端，我們要賠整批貨；誤判良品為瑕疵，頂多多花一分鐘複檢。」",
+q:"模型應優先提高哪個指標？",
+o:["精確率（Precision），減少良品被誤判的次數","召回率（Recall），減少瑕疵品被漏掉的機會","準確率（Accuracy），提高整體判對的比例","推論速度（Latency），縮短單張影像的耗時"],a:1,
+why:"漏掉的代價遠大於誤判 → 寧可錯殺不可放過 → 拉高 Recall（把所有真瑕疵都抓出來的比例）。",
+trap:"這一題型每次考法都一樣：**看清楚哪一種錯誤代價比較大**。代價在「漏掉」→ Recall；代價在「誤報」→ Precision（例如自動封鎖帳號、詐騙攔截誤擋正常交易）。"},
+
+{c:"垃圾郵件過濾器如果把老闆寄來的重要信件誤判為垃圾郵件，後果嚴重；漏掉幾封垃圾信只是有點煩。",
+q:"此情境應優先最佳化？",
+o:["精確率（Precision）","召回率（Recall）","訓練速度","模型的參數量"],a:0,
+why:"代價在「誤判為垃圾（偽陽性）」→ 要確保被判為垃圾的**真的都是垃圾** → Precision。",
+trap:"和上一題刻意成對出現。同樣是二元分類，**代價方向反過來，答案就反過來**。考場上先問自己：偽陽性痛，還是偽陰性痛？"},
+
+{c:"某銀行詐騙偵測模型的測試結果：全部 10,000 筆交易中詐騙僅 50 筆，模型把所有交易都判為正常，準確率 99.5%。",
+q:"對此結果最正確的評價是？",
+o:["模型表現優異，可以直接部署上線使用","類別極不平衡，準確率無法反映真實效能","應再增加訓練輪次以突破 99.5% 的瓶頸","測試資料筆數不足，需要再擴充十倍規模"],a:1,
+why:"這個模型的 Recall 是 0——一筆詐騙都沒抓到。不平衡資料要看 Precision／Recall／F1／AUC，不能只看 Accuracy。",
+trap:"記住這個「99.5% 的廢物模型」畫面，考場上看到高準確率＋稀有事件，直接反射。這題幾乎每次都會出。"},
+
+{c:"團隊比較兩個模型：A 模型 Precision 高但 Recall 低，B 模型 Recall 高但 Precision 低，難以取捨。",
+q:"最適合用來綜合比較的單一指標是？",
+o:["準確率（Accuracy）","F1 分數（兩者的調和平均）","平均絕對誤差（MAE）","決定係數（R²）"],a:1,
+why:"F1 是 Precision 與 Recall 的調和平均，任一方太低都會把 F1 拉下來，適合在兩者間求平衡。",
+trap:"C、D 都是**迴歸**任務的指標，被放進分類題來干擾。分類看 Accuracy／Precision／Recall／F1／AUC；迴歸看 MAE／MSE／RMSE／R²，兩組別混。"},
+
+{c:"實習生報告：「模型在訓練資料上準確率 98%，但在測試資料上只有 62%。」",
+q:"最可能的原因與對策是？",
+o:["欠擬合，應增加模型的層數與參數量","過擬合，應加入正則化或增加訓練資料","資料外洩，應重新切分訓練與測試資料","學習率過小，應調高學習率加速收斂"],a:1,
+why:"訓練高、測試低＝過擬合的教科書症狀。對策：增加資料、資料擴增、Dropout、正則化、提早停止、簡化模型。",
+trap:"C 的資料外洩方向剛好相反——外洩會讓**測試分數虛高**，而不是掉下來。A 的欠擬合則是訓練、測試**兩邊都低**。三種症狀要能分辨。"},
+
+{c:"某模型訓練準確率 61%、測試準確率 59%，兩者都不理想。",
+q:"這比較可能是什麼問題？",
+o:["過擬合，模型記住了訓練資料的雜訊","欠擬合，模型太簡單或特徵資訊不足","資料外洩，測試集混入了訓練資料","評估指標選錯，應改看 F1 分數"],a:1,
+why:"兩邊都差 → 模型根本沒學到東西。可能是模型太簡單、特徵沒鑑別度、或訓練不足。",
+trap:"這題和上一題成對。**分辨口訣：訓練好測試差＝過擬合；兩邊都差＝欠擬合。** 只要先看訓練分數就能分開。"},
+
+/* ---------- 四、生成式 AI 應用（重點區） ---------- */
+{c:"公司想做一個內部問答機器人，回答員工關於請假規定、報帳流程的問題。這些規章大約每個月會修訂一次。",
+q:"最合適的技術方案是？",
+o:["每月以最新規章重新微調（Fine-tuning）模型","建立 RAG 架構，讓模型即時檢索最新文件","把所有規章貼進系統提示詞並固定不再修改","改用參數量更大的模型以涵蓋更多的知識"],a:1,
+why:"知識**會頻繁更新**＋需要**標出處**＋文件量大 → RAG。規章改了只要重建索引，不必動模型。",
+trap:"A 是最經典的誘答。**微調是教模型「怎麼答」（語氣、格式、專業風格），RAG 是給模型「答什麼」（事實知識）。** 這個分界是生成式 AI 章節的必考點。"},
+
+{c:"某客服團隊希望 AI 回覆的語氣、格式、專業用詞都符合公司既有的回覆規範，已累積三千筆優質客服對話範例。",
+q:"最合適的做法是？",
+o:["以這批對話進行微調，讓模型學會既有風格","建立 RAG 檢索，每次回覆前先查詢對話紀錄","要求員工每次都在提示詞中貼上完整規範","改用更大的模型即可自然符合公司的風格"],a:0,
+why:"要調整的是**行為模式與風格**，而且有足量高品質範例 → 微調正是為此設計的。",
+trap:"和上一題刻意對照。同樣是企業導入 LLM，**要「知識」用 RAG，要「風格／格式／行為」用微調**。看清楚題目要解決的是哪一種。"},
+
+{c:"員工用 AI 產出的市場分析報告中，引用了一篇看起來很專業的研究論文，但同事查證後發現該論文根本不存在。",
+q:"這種現象稱為什麼？成因為何？",
+o:["模型過擬合，記住了訓練資料中的錯誤內容","模型幻覺，依機率生成合理文字而未經查證","資料外洩，訓練資料中的機密內容被還原出來","提示詞注入，使用者的指令遭到惡意的竄改"],a:1,
+why:"LLM 本質是預測「下一個最可能的詞」，它優化的是**通順合理**而非**事實正確**，所以會自信地編造出格式完美的假引用。",
+trap:"C 的資料外洩、D 的提示詞注入都是真實存在的 LLM 風險，放在一起考你分不分得清。幻覺＝**憑空編造**；外洩＝**吐出真實但不該說的內容**；注入＝**被外部指令劫持**。"},
+
+{c:"某員工為了趕報告，把公司尚未公開的財報草稿貼進公有雲 AI 服務請它摘要。",
+q:"此舉最主要的風險是？",
+o:["文件太長會導致回應速度明顯變慢","機密資料離開內網，可能被留存或用於訓練","AI 摘要可能會遺漏財報中的部分數字","財報的表格排版在轉換過程中會跑掉"],a:1,
+why:"資料一旦送出就脫離公司掌控，可能違反保密義務、內線交易規範或個資法。這是企業導入生成式 AI 第一條要立的規矩。",
+trap:"A、C、D 都是「有點麻煩但可補救」的問題，用來稀釋真正嚴重的那一個。這類題目要抓**不可逆的後果**。"},
+
+{c:"主管請你用 AI 協助處理複雜的成本試算，發現直接問答案常常算錯，但改成請 AI「先列出計算步驟再給結果」後正確率明顯提升。",
+q:"這運用了哪一種提示技巧？",
+o:["少樣本提示（Few-shot），提供範例供其模仿","思維鏈（Chain-of-Thought），引導逐步推理","角色扮演提示，指定模型扮演特定的專家","檢索增強生成，讓模型查詢外部知識來源"],a:1,
+why:"要求模型把推理過程寫出來再作答，對數學、邏輯、多步驟問題效果顯著。",
+trap:"A 的 Few-shot 是**給範例**，CoT 是**給步驟要求**，兩者常被混淆。判別關鍵：題幹有沒有提到「提供幾個例子」？沒有就不是 Few-shot。"},
+
+{c:"某公司要把 200 頁的產品手冊放進 RAG 系統。",
+q:"文件在進入向量資料庫之前，必要的處理步驟是？",
+o:["將文件切成適當大小的區塊並轉為語意向量","將文件全文一次轉為單一向量以保持完整性","將文件轉為圖片格式以保留原始的排版樣式","將文件內容全部改寫成問答對後才能存入"],a:0,
+why:"切塊（chunking）→ 轉 embedding → 存入向量庫。切塊是為了讓檢索能精準命中相關段落，也避免超出上下文長度。",
+trap:"B 聽起來「保持完整」很合理，但整份 200 頁壓成一個向量，語意會被平均掉，檢索等於失效。切塊大小與重疊是 RAG 的核心調校參數。"},
+
+{c:"行銷部想用 AI 生成產品文案，但發現同一個提示詞每次產出的內容都不太一樣。",
+q:"對此現象最正確的理解是？",
+o:["模型發生故障，應回報服務商進行修復","生成具隨機性，可調整參數降低變異程度","模型正在持續學習，會愈用愈穩定一致","是網路延遲造成回應內容被截斷所導致"],a:1,
+why:"LLM 依機率取樣生成，本來就有隨機性。可透過調低 temperature 等參數讓輸出更穩定收斂。",
+trap:"C「模型會愈用愈聰明」是超常見的誤解——**一般使用不會改變模型權重**。模型要變，得經過重新訓練或微調。"},
+
+/* ---------- 五、專案導入與治理 ---------- */
+{c:"老闆聽完 AI 演講後說：「我們也來導入 AI，你去研究一下要買哪套系統。」",
+q:"身為規劃師，最適當的第一步是？",
+o:["立即比較市面上各家 AI 系統的功能與報價","先釐清要解決哪個業務問題與衡量成效的指標","先採購 GPU 伺服器以確保未來算力足夠使用","先蒐集公司所有部門的資料再從中尋找機會"],a:1,
+why:"沒有明確問題與可衡量指標，買什麼都不會成功。AI 專案最常見的失敗原因就是「為了做 AI 而做 AI」。",
+trap:"這題幾乎是 AI 規劃師的核心職能題。四個選項都是實務上真的有人這樣做，但**問題定義永遠在技術選型之前**。"},
+
+{c:"團隊評估一個 AI 專案，預計投入六個月與大量預算，但技術可行性與資料品質都還不確定。",
+q:"最適當的做法是？",
+o:["直接投入完整開發，以免錯過市場的時機","先做小規模 POC 驗證可行性與預期效益","等到資料完全乾淨齊備之後才啟動專案","委外給廠商全權處理以降低內部的風險"],a:1,
+why:"POC 的價值就是**用小成本及早知道行不行**。驗證通過再放大投資，不通過也只損失有限資源。",
+trap:"C 的「等資料齊備」聽起來很嚴謹，但實務上資料永遠不會完美，這等於無限期擱置。POC 本身也能幫你發現資料到底缺什麼。"},
+
+{c:"某零售業的銷售預測模型上線一年後，準確率從 88% 逐漸掉到 71%。系統沒有任何異常，程式也沒改過。",
+q:"最可能的原因是？",
+o:["伺服器硬體老化導致運算精度逐漸下降","市場與消費行為改變，發生資料／概念漂移","模型檔案長期存放後發生了自然的損毀","使用者查詢太頻繁而耗盡模型的推論額度"],a:1,
+why:"模型是照舊資料訓練的，但外面的世界在變（新競品、疫情、通膨、客群結構）。所以上線後必須持續監控並定期再訓練。",
+trap:"A、C 都把它當硬體或檔案問題——模型權重不會自己壞掉。**變的是世界，不是模型。** 這也是 MLOps 存在的理由。"},
+
+{c:"AI 履歷篩選系統上線後，人資發現女性求職者被淘汰的比例異常高。追查發現公司過去十年的錄取者九成為男性。",
+q:"這個問題的本質是？",
+o:["模型過擬合，應增加正則化以改善泛化能力","訓練資料偏誤，模型學到了歷史上的既有偏見","模型欠擬合，應增加特徵數量以提升鑑別度","評估指標選錯，應改用 F1 分數重新評估"],a:1,
+why:"模型忠實學會了資料裡既存的系統性偏見。解法要從資料面下手（重新平衡、移除代理變數）並建立公平性稽核。",
+trap:"這題也常搭配問「後續該怎麼做」——正解通常是**檢視資料代表性 + 加入公平性指標監控 + 保留人工複核**，而不是「換更大的模型」。"},
+
+{c:"公司規劃以 AI 輔助審核貸款申請。法務提醒：客戶若被拒絕，有權要求說明理由。",
+q:"這對模型選型最直接的影響是？",
+o:["必須選用準確率最高的深度學習模型","需兼顧可解釋性，或搭配 XAI 工具說明依據","應完全禁止使用 AI，改回全人工審核","只要在合約中載明使用 AI 即可免除說明"],a:1,
+why:"高風險決策場景需要可解釋性。做法包括選用本身可解釋的模型（決策樹、邏輯迴歸），或對黑箱模型套用 SHAP／LIME 等 XAI 工具。",
+trap:"A 只顧準確率，忽略了法遵是**硬性約束**而非加分項。實務上常需要在準確率與可解釋性之間取捨，這正是規劃師的判斷工作。"},
+
+{c:"某公司蒐集會員資料時，同意條款寫的是「用於訂單處理與售後服務」。行銷部現在想拿這批資料訓練推薦模型。",
+q:"依個資法的精神，最正確的做法是？",
+o:["資料已在公司內部，可直接用於任何內部用途","超出原蒐集特定目的，須另行取得當事人同意","只要不對外提供，就不受特定目的的限制","只要做去識別化處理即可完全免除所有義務"],a:1,
+why:"個資法核心是「特定目的」。當初說要做訂單處理，就不能逕自挪作行銷模型訓練，需另行告知並取得同意。",
+trap:"A、C 都把「內部使用」當免死金牌。D 的去識別化是**降低風險的手段**，不是萬用豁免——而且仍有再識別的可能。"},
+
+{c:"某醫院導入 AI 影像輔助判讀系統，主任堅持所有 AI 判讀結果仍須由放射科醫師確認後才發出報告。",
+q:"這樣的設計主要體現什麼原則？",
+o:["人在迴路（Human-in-the-loop），確保高風險決策有人負責","模型壓縮，藉此降低醫院端的運算成本負擔","資料擴增，讓醫師的判讀成為新的訓練樣本","邊緣運算，讓推論在本地端完成不上傳雲端"],a:0,
+why:"高風險場域（醫療、司法、金融）不宜全自動。人在迴路同時滿足責任歸屬、風險控管，且醫師的修正還能回饋成訓練資料。",
+trap:"C 也沾到一點邊（醫師修正確實可回饋），但那是附帶效果，不是這個設計的**主要目的**。題目問「主要體現」，要選最核心的那個。"},
+
+{c:"某新創宣稱其 AI 系統可依照人臉自動評估求職者的「可信度」與「工作態度」。",
+q:"依歐盟 AI Act 的風險分級精神，這類應用最可能被歸類為？",
+o:["最小風險，可自由開放使用不需管制","高風險甚至不可接受風險，須嚴格管制","有限風險，僅需標示由 AI 生成即可","不屬於管制範圍，因為並未涉及個資"],a:1,
+why:"就業篩選屬於高風險應用；以生物特徵推論性格、情緒等更接近不可接受風險。AI Act 的核心是**依用途而非依技術**分級。",
+trap:"D 的「沒涉及個資所以不管」是錯的——人臉本身就是生物識別個資，而且 AI Act 管的是應用風險，與個資法是兩套並行的規範。"},
+
+{c:"經理問：「這個模型準確率 94%，你跟我說這代表什麼？」",
+q:"最能說服管理層的呈現方式是？",
+o:["說明模型使用了最新的 Transformer 架構","換算成業務效益，例如每月省下多少工時","展示訓練過程的損失曲線與收斂的情形","比較十種演算法的準確率排名對照表"],a:1,
+why:"管理層在意投入產出。「準確率 94%」要翻譯成「每月省下 120 小時人工複核、錯誤率下降到 X%」才有決策價值。",
+trap:"A、C、D 都是技術人員最想秀的東西，也因此最容易選。**技術指標是手段，業務指標才是目的**——這是規劃師和工程師的分野。"},
+
+{c:"某製造業要在產線上即時偵測瑕疵，產線速度快、廠內網路不穩，且影像涉及製程機密不宜外傳。",
+q:"最適合的部署方式是？",
+o:["集中部署於公有雲，以取得最強大的算力","部署於邊緣端裝置，於產線本地完成推論","部署於海外資料中心，以降低租用的成本","改為離線批次處理，每日彙整後統一判讀"],a:1,
+why:"即時性 + 網路不穩 + 資料不外流，三個條件都指向邊緣運算：低延遲、斷網可用、資料留在廠內。",
+trap:"D 的離線批次完全違背「即時偵測」的需求——瑕疵品當天早就流出去了。看到「即時」就要排除批次處理。"},
+
+{c:"AI 專案上線後，團隊想確保它能長期穩定運作，包含版本管理、效能監控、資料漂移偵測與定期再訓練。",
+q:"這一整套實務通稱為？",
+o:["DevSecOps","MLOps","ETL","BI"],a:1,
+why:"MLOps＝機器學習版的 DevOps，把「訓練→部署→監控→再訓練」變成可重複、可追溯的流水線。",
+trap:"ETL 是資料萃取轉換載入，BI 是商業智慧報表，都是相鄰概念。看到**監控 + 再訓練 + 生命週期**就是 MLOps。"},
+
+{c:"公司想導入 AI 客服，但客服部同仁擔心自己會被取代，配合意願低落。",
+q:"規劃師在導入階段最應優先處理的是？",
+o:["加快導入速度，讓成效說服所有反對的聲音","溝通角色轉變與訓練規劃，爭取使用者的認同","跳過客服部，直接由資訊部門單方面推動","先削減人力編制，以強制推動系統的使用"],a:1,
+why:"AI 導入的失敗多半不是技術問題，而是**組織與人的問題**。使用者不配合，再好的系統也不會被用起來。",
+trap:"A 的「用成效說話」聽起來很務實，但在使用者抗拒的情況下，資料回饋與問題回報都會失真，反而做不出成效。變革管理要走在前面。"},
+
+/* ---------- 六、技術觀念（生活化包裝） ---------- */
+{c:"手機相簿能自動把照片依人臉歸類到不同人，也能辨識出照片裡有貓、有海、有蛋糕。",
+q:"這背後最主要運用的深度學習架構是？",
+o:["卷積神經網路（CNN），擅長擷取影像的空間特徵","循環神經網路（RNN），擅長處理時間序列資料","生成對抗網路（GAN），擅長生成擬真的新影像","強化學習網路，透過獎勵訊號學習最佳動作"],a:0,
+why:"影像辨識的主力架構就是 CNN，靠卷積核掃描擷取邊緣、紋理到物件等層次化特徵。",
+trap:"C 的 GAN 也和影像有關，但它是**生成**新影像，不是**辨識**既有影像。看清楚任務是「認出來」還是「畫出來」。"},
+
+{c:"手機輸入法能依你已經打的字預測下一個詞，語音助理也能聽懂整句話的意思。",
+q:"這類序列型任務早期主要使用哪種架構？後來被什麼取代？",
+o:["早期用 CNN，後來被 RNN 取代","早期用 RNN／LSTM，後來被 Transformer 取代","早期用 GAN，後來被自動編碼器取代","早期用決策樹，後來被支援向量機取代"],a:1,
+why:"序列任務從 RNN → LSTM（解決長期依賴）→ Transformer（自注意力 + 可平行運算），這條演進線是必考。",
+trap:"要記住 Transformer 勝出的**兩個關鍵**：任意位置直接建立關聯（不必逐字傳遞），以及整句可平行計算（訓練能大規模擴展）。這正是 RNN 做不到的。"},
+
+{c:"某團隊只有 800 張產品瑕疵照片，遠不足以從零訓練一個影像辨識模型。",
+q:"最務實的做法是？",
+o:["放棄專案，等蒐集到十萬張照片後再重新啟動","採用遷移學習，以預訓練模型為基礎進行微調","改用規則式程式，以人工撰寫的判斷條件處理","將 800 張照片重複複製一百次以增加資料量"],a:1,
+why:"預訓練模型已在海量影像上學會邊緣、紋理等通用特徵，只要用這 800 張調整最後幾層即可。這是資料量不足時的標準解法。",
+trap:"D 的「重複複製」和資料擴增（Augmentation）不一樣——單純複製不會增加任何新資訊，只會加速過擬合。**擴增是旋轉、翻轉、調亮度等產生變化的版本。**"},
+
+{c:"某模型訓練時，損失值上上下下劇烈震盪，怎麼跑都收斂不了。",
+q:"最可能的原因是？",
+o:["學習率設定過大，每一步跨越了最佳解","學習率設定過小，收斂速度過於緩慢","訓練資料量太多，超出模型的處理能力","模型層數不足，無法表達複雜的關係"],a:0,
+why:"步伐太大會跨過谷底，在兩側來回彈跳甚至發散。對策是調小學習率或使用學習率衰減。",
+trap:"這是最經典的對調型誘答：**太大→震盪、發散；太小→龜速、易卡在局部最小值**。看症狀就能反推。"},
+
+{c:"某資料集有 300 個特徵欄位，但只有 500 筆資料，模型表現很差。",
+q:"最適合優先嘗試的處理方式是？",
+o:["增加更多特徵欄位以提供更豐富的資訊","進行特徵篩選或以 PCA 降維，減少維度","提高模型的層數與參數量以增強表達力","將所有特徵都做獨熱編碼後重新訓練"],a:1,
+why:"特徵數遠多於樣本數 → 維度災難，模型極易過擬合。應先做特徵選擇或 PCA 降維。",
+trap:"A、C 都會讓情況**更糟**。這題考的是「特徵不是愈多愈好」——樣本數與特徵數的比例是資料準備階段就要檢查的東西。"},
+
+{c:"公司要買設備跑 AI 模型訓練，採購問你為什麼不能用一般辦公電腦就好。",
+q:"最正確的說明是？",
+o:["GPU 具備大量核心，適合平行處理矩陣運算","GPU 的單核時脈遠高於 CPU，因此速度較快","GPU 內建 AI 演算法，CPU 則必須自行撰寫","GPU 不需要作業系統，可省下軟體授權費用"],a:0,
+why:"深度學習的本質是海量矩陣運算，GPU 有數千個核心可同時處理，比 CPU 的少數強核心適合得多。",
+trap:"B 剛好講反——GPU **單核時脈其實比 CPU 低**，贏在數量與平行度。這是很容易憑印象選錯的一題。"},
+
+{c:"某公司想把歷年各系統的原始日誌、影片、PDF、感測器數據全部先存起來，未來再視需要探索分析。",
+q:"最適合的儲存架構是？",
+o:["資料倉儲，先建好模型再依格式匯入資料","資料湖，可容納多元格式的原始資料","關聯式資料庫，以正規化的資料表儲存","試算表檔案，以資料夾分類管理即可"],a:1,
+why:"資料湖是 schema-on-read：先存再說，格式不拘，適合尚未確定用途的探索性資料與機器學習素材。",
+trap:"記法：**倉庫要先分類上架（schema-on-write），湖水直接倒進去（schema-on-read）。** 兩者的定義常被對調來考。"},
+
+{c:"某人說：「我們的 AI 系統用久了就會愈來愈聰明，所以初期表現差沒關係。」",
+q:"對這句話最正確的評價是？",
+o:["正確，模型會在每次使用中自動更新權重","不正確，一般部署後的模型不會自行學習","正確，只要使用者持續回饋就會即時進化","不正確，模型部署後準確率必定會逐漸下降"],a:1,
+why:"部署後的模型是**固定權重**在做推論，不會因為被用而變聰明。要進步必須經由重新訓練或微調，且需要有回饋資料蒐集機制。",
+trap:"D 也是錯的但錯法不同——模型不是「必定」下降，而是**當資料分布改變時**才會退化。絕對化的敘述（必定、一定、永遠）通常是陷阱。"},
+
+{c:"公司導入 AI 排程系統，效果不錯。半年後主管問：「要怎麼知道它現在還好不好用？」",
+q:"最適當的做法是？",
+o:["每半年重新訓練一次即可，不需額外監控","持續監控預測誤差與資料分布，設定告警門檻","等到使用者抱怨時再回頭檢查模型的狀況","以初次上線時的測試分數作為長期的依據"],a:1,
+why:"監控是 MLOps 的核心：追蹤線上指標、偵測資料／概念漂移，超出門檻就觸發告警或再訓練。",
+trap:"C 是很多公司實際的狀態，但那是**被動的**——等使用者抱怨時，錯誤決策早已累積數月。監控要能比使用者更早發現問題。"},
+
+{c:"你要向不懂技術的董事會說明 AI 專案的風險，其中一項是「模型可能對特定族群產生不公平的結果」。",
+q:"這項風險最適合對應到哪個治理議題？",
+o:["演算法偏誤與公平性","模型推論延遲效能","硬體採購成本控制","程式碼的版本控制"],a:0,
+why:"AI 倫理治理的四大常見支柱：公平性（不歧視）、透明可解釋、可問責、隱私與資安。這題屬於公平性。",
+trap:"這類題目要能把**具體現象**對回**治理框架的名稱**。看到「特定族群」「差別待遇」「歷史資料傾斜」，就是偏誤與公平性。"},
+
+{c:"某公司希望 AI 生成的行銷圖片能明確讓消費者知道「這不是真實拍攝的照片」。",
+q:"這對應到 AI 治理中的哪一項原則？",
+o:["透明性，應揭露內容係由 AI 生成","可靠性，應確保生成品質穩定一致","隱私性，應避免使用真人的肖像資料","效率性，應縮短生成所需要的時間"],a:0,
+why:"透明性要求使用者知道自己在與 AI 互動、或看到的是 AI 生成內容。EU AI Act 中「有限風險」層級的核心義務就是標示揭露。",
+trap:"C 也是真的議題（肖像權），但題幹問的是「讓消費者知道這不是真實照片」——重點在**揭露**，不在**肖像**。看清楚題目在問哪一件事。"},
+
+{c:"導入 AI 後，公司想評估這個專案到底值不值得繼續投資。",
+q:"最合適的評估基礎是？",
+o:["比較投入成本與可量化的效益，計算投資報酬","比較本公司與同業所使用演算法的先進程度","統計專案期間團隊所投入的總工時與加班時數","計算模型在測試集上所達到的最高準確率數值"],a:0,
+why:"專案評估看 ROI：省下的工時、降低的錯誤成本、增加的營收，對比開發與維運成本。",
+trap:"這題和前面「怎麼跟經理報告」是同一個核心：**規劃師要能把技術成果翻譯成商業語言**。整份考卷這個觀念會反覆出現，答案永遠往業務價值靠。"}
+];
+
+const app=document.getElementById('app'), hud=document.getElementById('hud');
+let deck=[],i=0,ok=0,wrongs=[],answered=false;
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b style="color:#fff">$1</b>');
+const L=['A','B','C','D'];
+const shuffle=a=>{a=a.slice();for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a};
+
+function start(){
+  hud.hidden=true;
+  app.innerHTML=`
+  <div class="hero">
+    <h1>情境應用<em> 混合版</em></h1>
+    <p>45 題，以工廠、門市、人資、客服等真實場景包裝。考的是同一批觀念，但你要先從情境裡找出關鍵字。</p>
+    <div class="pick">
+      <button data-m="0"><span class="k">RUN</span><span class="t">全部 45 題隨機出題<span class="s">最接近實戰的作答節奏</span></span></button>
+      <button data-m="20"><span class="k">20</span><span class="t">快速 20 題<span class="s">時間不多時的濃縮版</span></span></button>
+    </div>
+    <p class="note">情境題的解法：先看最後那句問句，再回頭在情境裡找關鍵字（有沒有標籤／哪種錯誤代價大／知識會不會更新／是不是要即時）。不要被無關的背景數字帶走。</p>
+  </div>`;
+  app.querySelectorAll('.pick button').forEach(b=>b.onclick=()=>{
+    const n=+b.dataset.m;
+    deck=shuffle(BANK); if(n) deck=deck.slice(0,n);
+    i=0;ok=0;wrongs=[];hud.hidden=false;render();window.scrollTo(0,0);
+  });
+}
+
+function render(){
+  const q=deck[i];answered=false;
+  document.getElementById('hPos').textContent=(i+1)+'/'+deck.length;
+  document.getElementById('hOk').textContent=ok;
+  document.getElementById('hBar').style.width=(i/deck.length*100)+'%';
+  app.innerHTML=`
+    <div class="qhead"><div class="qno">${String(i+1).padStart(2,'0')}</div>
+      <div class="qsub">情境應用題</div></div>
+    ${q.c?`<div class="scene"><span class="lb">CASE</span>${esc(q.c)}</div>`:''}
+    <p class="qtext">${esc(q.q)}</p>
+    <div class="opts">
+      ${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="a">${L[k]}</span><span>${esc(t)}</span></button>`).join('')}
+    </div>
+    <div id="after"></div>`;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.k));
+}
+
+function choose(k){
+  if(answered)return;answered=true;
+  const q=deck[i],right=k===q.a;
+  if(right)ok++;else wrongs.push({q,picked:k});
+  app.querySelectorAll('.opt').forEach(b=>{
+    const bk=+b.dataset.k;b.disabled=true;
+    if(bk===q.a)b.classList.add('correct');
+    else if(bk===k)b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  document.getElementById('hOk').textContent=ok;
+  document.getElementById('after').innerHTML=`
+    <div class="exp">
+      <div class="box why"><span class="lb">${right?'ANSWER · 答對':'ANSWER · 正解 '+L[q.a]}</span><p>${md(q.why)}</p></div>
+      <div class="box trap"><span class="lb">TRAP · 陷阱在哪</span><p>${md(q.trap)}</p></div>
+    </div>
+    <div class="nav"><button class="btn" id="next">${i+1<deck.length?'下一題':'看結果'}</button></div>`;
+  document.getElementById('next').onclick=()=>{
+    i++;
+    if(i<deck.length){render();window.scrollTo({top:0,behavior:'smooth'});}
+    else finish();
+  };
+  document.getElementById('after').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function finish(){
+  document.getElementById('hBar').style.width='100%';
+  const pct=Math.round(ok/deck.length*100),pass=pct>=60;
+  app.innerHTML=`
+    <div class="score">
+      <div class="n ${pass?'pass':'fail'}">${pct}</div>
+      <div class="l">答對 ${ok} / ${deck.length} 題　（及格線 60）</div>
+      <div class="verdict">${pass?(pct>=80?'情境題的邏輯你抓到了，可以收工了。':'過線。把錯題的陷阱看一遍就好。'):'把下面每一則「陷阱」讀完，這是現在最值得花的時間。'}</div>
+    </div>
+    ${wrongs.length?`<div class="rev"><h3>錯題回顧（${wrongs.length}）</h3>${wrongs.map(w=>`
+      <div class="rvitem">
+        <p class="q">${esc(w.q.q)}</p>
+        <p class="ln x">你選了 <b>${L[w.picked]}</b>　${esc(w.q.o[w.picked])}</p>
+        <p class="ln">正解 <b>${L[w.q.a]}</b>　${esc(w.q.o[w.q.a])}</p>
+        <p class="ln" style="margin-top:8px;color:#98a2ae">${md(w.q.trap)}</p>
+      </div>`).join('')}</div>`:''}
+    <div class="nav"><button class="btn" id="again">再考一次</button><button class="btn ghost" id="home">回首頁</button></div>
+    <p class="foot">依 iPAS AI 應用規劃師初級考試範圍自行編寫的模擬情境題，非官方歷屆試題。情境題的關鍵永遠在題幹的限制條件，不在背景描述。</p>`;
+  document.getElementById('again').onclick=()=>{deck=shuffle(deck);i=0;ok=0;wrongs=[];render();window.scrollTo(0,0)};
+  document.getElementById('home').onclick=start;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+start();
+</script>
+</body>
+</html>
